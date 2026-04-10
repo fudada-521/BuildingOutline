@@ -1,17 +1,24 @@
-
 /**
  * 处理跨越国际日期变更线的几何图形（Polyline和Polygon）
- * @param {Object} geometry - ArcGIS JSAPI几何图形对象（Polyline或Polygon）
- * @returns {Object} 处理后的几何图形对象
+ *
+ * 优化方案：只对跨越IDL后的点进行调整，而非所有负经度都+360
+ * 原理：检测经度跳变（差值>180），跳变后的点+360保持连续
+ *
+ * @format
+ */
+
+/**
+ * 主入口函数
+ * @param {Object} geometry - ArcGIS几何对象（Polyline或Polygon）
+ * @returns {Object} 处理后的几何对象
  */
 function processGeometryAcrossIDL(geometry) {
     if (!geometry) return geometry;
-    
-    // 检查几何图形类型并分别处理
+
     if (geometry.type === "polyline") {
-        return processPolylineAcrossIDL(geometry);
+        return processPolyline(geometry);
     } else if (geometry.type === "polygon") {
-        return processPolygonAcrossIDL(geometry);
+        return processPolygon(geometry);
     } else {
         console.warn("不支持的几何图形类型:", geometry.type);
         return geometry;
@@ -19,147 +26,90 @@ function processGeometryAcrossIDL(geometry) {
 }
 
 /**
- * 处理折线（Polyline）跨越国际日期变更线的情况
+ * 处理折线
  */
-function processPolylineAcrossIDL(polyline) {
+function processPolyline(polyline) {
     if (!polyline.paths || polyline.paths.length === 0) return polyline;
-    
-    const hasCrossed = detectIDLCrossingForPaths(polyline.paths);
-    
-    if (!hasCrossed) {
+
+    // 检查是否需要处理
+    if (!detectCrossing(polyline.paths)) {
         return polyline;
     }
-    
-    // 处理所有路径中的坐标点
-    const processedPaths = polyline.paths.map(path => {
-        return path.map(point => {
-            const [x, y] = point;
-            // 处理经度坐标（假设第一个坐标是经度）
-            const processedX = x < 0 ? x + 360 : x;
-            return [processedX, y];
-        });
-    });
-    
+
+    // 处理每条路径
+    const processedPaths = polyline.paths.map(path => processPath(path));
+
     return {
         type: "polyline",
         paths: processedPaths,
-        spatialReference: polyline.spatialReference
+        spatialReference: polyline.spatialReference,
     };
 }
 
 /**
- * 处理多边形（Polygon）跨越国际日期变更线的情况
+ * 处理多边形
  */
-function processPolygonAcrossIDL(polygon) {
+function processPolygon(polygon) {
     if (!polygon.rings || polygon.rings.length === 0) return polygon;
-    
-    const hasCrossed = detectIDLCrossingForRings(polygon.rings);
-    
-    if (!hasCrossed) {
+
+    // 检查是否需要处理
+    if (!detectCrossing(polygon.rings)) {
         return polygon;
     }
-    
-    // 处理所有环中的坐标点
-    const processedRings = polygon.rings.map(ring => {
-        return ring.map(point => {
-            const [x, y] = point;
-            // 处理经度坐标
-            const processedX = x < 0 ? x + 360 : x;
-            return [processedX, y];
-        });
-    });
-    
+
+    // 处理每个环
+    const processedRings = polygon.rings.map(ring => processPath(ring));
+
     return {
         type: "polygon",
         rings: processedRings,
-        spatialReference: polygon.spatialReference
+        spatialReference: polygon.spatialReference,
     };
 }
 
 /**
- * 检测折线路径是否跨越国际日期变更线
+ * 处理单条路径/环
+ * 核心逻辑：从第一个跨越IDL的点开始，后续所有负经度点+360
  */
-function detectIDLCrossingForPaths(paths) {
-    for (const path of paths) {
-        for (let i = 0; i < path.length - 1; i++) {
-            const currentPoint = path[i];
-            const nextPoint = path[i + 1];
-            const currentLon = currentPoint[0];
-            const nextLon = nextPoint[0];
-            
-            const lonDiff = Math.abs(currentLon - nextLon);
-            if (lonDiff > 180) {
-                return true;
+function processPath(coords) {
+    let hasCrossed = false;
+    const result = [];
+
+    for (let i = 0; i < coords.length; i++) {
+        const point = coords[i];
+        const [x, y] = point;
+
+        if (i > 0) {
+            const [prevX] = coords[i - 1];
+            // 检测IDL跨越：相邻两点经度差绝对值>180
+            if (Math.abs(x - prevX) > 180) {
+                hasCrossed = true;
             }
         }
+
+        // 跨越后，负经度转为>180的表示
+        if (hasCrossed && x < 0) {
+            result.push([x + 360, y]);
+        } else {
+            result.push(point);
+        }
     }
-    return false;
+
+    return result;
 }
 
 /**
- * 检测多边形环是否跨越国际日期变更线
+ * 检测是否跨越IDL
  */
-function detectIDLCrossingForRings(rings) {
-    for (const ring of rings) {
-        for (let i = 0; i < ring.length - 1; i++) {
-            const currentPoint = ring[i];
-            const nextPoint = ring[i + 1];
-            const currentLon = currentPoint[0];
-            const nextLon = nextPoint[0];
-            
-            const lonDiff = Math.abs(currentLon - nextLon);
-            if (lonDiff > 180) {
+function detectCrossing(parts) {
+    for (const part of parts) {
+        for (let i = 0; i < part.length - 1; i++) {
+            const lon1 = part[i][0];
+            const lon2 = part[i + 1][0];
+            if (Math.abs(lon2 - lon1) > 180) {
                 return true;
             }
         }
     }
     return false;
 }
-
-// ==================== 使用示例 ====================
-require([
-    "esri/geometry/Polyline",
-    "esri/geometry/Polygon"
-], function(Polyline, Polygon) {
-
-    // 示例1：跨越国际日期变更线的折线
-    const crossingPolyline = new Polyline({
-        paths: [[
-            [-170, 30],  // 西经
-            [170, 30]    // 东经（跨越日期变更线）
-        ]],
-        spatialReference: { wkid: 4326 }
-    });
-
-    // 示例2：跨越国际日期变更线的多边形（环太平洋区域）
-    const crossingPolygon = new Polygon({
-        rings: [[
-            [-170, 30],
-            [-170, 40],
-            [170, 40],   // 跨越日期变更线
-            [170, 30],
-            [-170, 30]   // 闭合环
-        ]],
-        spatialReference: { wkid: 4326 }
-    });
-
-    // 示例3：未跨越国际日期变更线的几何图形
-    const normalPolyline = new Polyline({
-        paths: [[
-            [-100, 30],
-            [-80, 30]    // 完全在西半球
-        ]],
-        spatialReference: { wkid: 4326 }
-    });
-
-    console.log("处理前 - 跨越日期变更线的折线:", crossingPolyline.paths);
-    const processedPolyline = processGeometryAcrossIDL(crossingPolyline);
-    console.log("处理后 - 跨越日期变更线的折线:", processedPolyline.paths);
-
-    console.log("处理前 - 跨越日期变更线的多边形:", crossingPolygon.rings);
-    const processedPolygon = processGeometryAcrossIDL(crossingPolygon);
-    console.log("处理后 - 跨越日期变更线的多边形:", processedPolygon.rings);
-
-    console.log("未跨越日期变更线的折线处理结果:", 
-        processGeometryAcrossIDL(normalPolyline).paths);
-});

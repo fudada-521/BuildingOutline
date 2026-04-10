@@ -8,31 +8,32 @@
 
 function testPolygonIDL(map) {
     require(["esri/layers/GraphicsLayer", "esri/Graphic"], function (GraphicsLayer, Graphic) {
-        // A多边形：跨越IDL的原始矩形（纬度10-20）
+        // A多边形：从东经往西经跨越IDL
+        // 路径：170 -> -170 -> -165
         const polygonA = {
             type: "polygon",
             rings: [
                 [
-                    [-170, 15], // 左下
-                    [-170, 25], // 左上
-                    [170, 25], // 右上（跨越IDL）
                     [170, 15], // 右下
-                    [-170, 15], // 闭合
+                    [170, 25], // 右上
+                    [-170, 25], // 左上（跨越IDL）
+                    [-170, 15], // 左下
+                    [170, 15], // 闭合
                 ],
             ],
             spatialReference: { wkid: 4326 },
         };
 
-        // B多边形：纬度0-10（Polyline B下方约10度）
+        // B多边形：同样从东经往西经跨越IDL
         const polygonBOriginal = {
             type: "polygon",
             rings: [
                 [
-                    [-170, 0], // 左下
-                    [-170, 10], // 左上
-                    [170, 10], // 右上（跨越IDL）
                     [170, 0], // 右下
-                    [-170, 0], // 闭合
+                    [170, 10], // 右上
+                    [-170, 10], // 左上（跨越IDL）
+                    [-170, 0], // 左下
+                    [170, 0], // 闭合
                 ],
             ],
             spatialReference: { wkid: 4326 },
@@ -77,5 +78,12 @@ function testPolygonIDL(map) {
                 },
             }),
         );
+
+        // 控制台输出
+        console.log("===== Polygon IDL 处理对比 =====");
+        console.log("A多边形（未处理，断裂）:", JSON.stringify(polygonA.rings));
+        console.log("B多边形（原始坐标）:", JSON.stringify(polygonBOriginal.rings));
+        console.log("B多边形（process处理后）:", JSON.stringify(polygonBProcessed.rings));
+        console.log("================================");
     });
 }
