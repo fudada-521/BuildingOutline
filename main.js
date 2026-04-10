@@ -1,18 +1,32 @@
 /** @format */
 
-require([
-    "esri/Map",
-    "esri/views/MapView",
-    "esri/layers/OpenStreetMapLayer",
-    "esri/widgets/Legend",
-    "esri/widgets/ScaleBar",
-], function (Map, MapView, OpenStreetMapLayer, Legend, ScaleBar) {
-    // OpenStreetMap 底图
-    const osmLayer = new OpenStreetMapLayer();
-
-    // 创建地图对象
+require(["esri/Map", "esri/views/MapView", "esri/widgets/Legend", "esri/widgets/ScaleBar"], function (
+    Map,
+    MapView,
+    Legend,
+    ScaleBar,
+) {
+    // 创建地图对象 - 使用预定义底图
     const map = new Map({
-        layers: [osmLayer],
+        // 可选底图类型：
+        // basemap: "streets",                      // 街道图
+        // basemap: "satellite",                    // 卫星影像
+        // basemap: "hybrid", // 影像+标注
+        // basemap: "terrain",                      // 地形
+        // basemap: "topo",                         // 地形图
+        basemap: "gray", // 灰色底图
+        // basemap: "dark-gray",                    // 深灰底图
+        // basemap: "light-gray",                   // 浅灰底图
+        // basemap: "oceans",                       // 海洋底图
+        // basemap: "national-geographic",         // 国家地理
+        // basemap: "osm",                          // OpenStreetMap
+        // basemap: "arcgis-imagery",               // ArcGIS影像
+        // basemap: "arcgis-light-gray",            // ArcGIS浅灰
+        // basemap: "arcgis-dark-gray",             // ArcGIS深灰
+        // basemap: "arcgis-navigation",            // ArcGIS导航
+        // basemap: "arcgis-navigation-night",      // ArcGIS导航夜行
+        // basemap: "arcgis-streets", // ArcGIS街道
+        basemap: "dark-gray", // 深灰底图
     });
 
     // 创建地图视图 - 中心在太平洋（国际日期变更线附近）
