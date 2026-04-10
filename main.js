@@ -29,6 +29,9 @@ require(["esri/Map", "esri/views/MapView", "esri/widgets/Legend", "esri/widgets/
         basemap: "dark-gray", // 深灰底图
     });
 
+    // 添加国际日期变更线
+    addInternationalDateLine(map);
+
     // 创建地图视图 - 中心在太平洋（国际日期变更线附近）
     const view = new MapView({
         container: "map",
@@ -38,10 +41,10 @@ require(["esri/Map", "esri/views/MapView", "esri/widgets/Legend", "esri/widgets/
     });
 
     // 添加图例
-    const legend = new Legend({
-        view: view,
-    });
-    view.ui.add(legend, "bottom-left");
+    // const legend = new Legend({
+    //     view: view,
+    // });
+    // view.ui.add(legend, "bottom-left");
 
     // 添加比例尺
     const scaleBar = new ScaleBar({

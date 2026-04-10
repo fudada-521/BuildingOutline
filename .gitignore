@@ -1,2 +1,7 @@
 # 历史文件
 .history
+.history-*
+
+# 原始GeoJSON数据（保留合并后的版本）
+idl.geojson
+
