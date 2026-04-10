@@ -10,7 +10,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is an ArcGIS JS API 4.18 demo project that visualizes and processes geometries (Polyline/Polygon) crossing the International Date Line (IDL). The core function `processGeometryAcrossIDL` adjusts longitude coordinates when the difference between adjacent points exceeds 180 degrees.
+This is an ArcGIS JS API 4.18 demo project that visualizes and processes geometries (Polyline/Polygon) crossing the International Date Line (IDL). The `IDLGeometryProcessor` class adjusts longitude coordinates when the difference between adjacent points exceeds 180 degrees.
 
 ## Architecture
 
@@ -32,11 +32,13 @@ This is an ArcGIS JS API 4.18 demo project that visualizes and processes geometr
 
 ## Key Functions
 
-- `processGeometryAcrossIDL(geometry)` - Main entry point, handles both Polyline and Polygon
-- `processPolylineAcrossIDL(polyline)` - Processes Polyline paths
-- `processPolygonAcrossIDL(polygon)` - Processes Polygon rings
-- `detectIDLCrossingForPaths(paths)` - Detects if paths cross IDL (lonDiff > 180)
-- `detectIDLCrossingForRings(rings)` - Detects if rings cross IDL
+- `IDLGeometryProcessor` class - Main processor for IDL geometry handling
+  - `process(geometry)` - Main entry point, handles both Polyline and Polygon
+  - `processPolyline(polyline)` - Processes Polyline paths
+  - `processPolygon(polygon)` - Processes Polygon rings
+  - `detectCrossing(coordinates)` - Detects if coordinates cross IDL (lonDiff > 180)
+  - `normalizeLongitude(point)` - Normalizes longitude (negative values +360)
+- `idlProcessor` - Singleton instance exported from process.js
 
 ## Running the Project
 

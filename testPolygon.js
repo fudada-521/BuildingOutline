@@ -33,7 +33,7 @@ function testPolygonIDL(map) {
         };
 
         // 处理 B 多边形
-        const polygonBProcessed = processGeometryAcrossIDL(polygonBOriginal);
+        const polygonBProcessed = idlProcessor.process(polygonBOriginal);
 
         // 创建图层
         const layerA = new GraphicsLayer();

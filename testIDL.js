@@ -1,8 +1,6 @@
 /**
- * 可视化对比测试：验证 processGeometryAcrossIDL 功能
+ * 可视化对比测试：验证 IDLGeometryProcessor 功能
  * A线：未处理（断裂） B线：处理过（连续）
- *
- * @format
  */
 
 function testIDLProcessing(map) {
@@ -24,7 +22,7 @@ function testIDLProcessing(map) {
         ];
 
         // 处理 B 线
-        const processedB = processGeometryAcrossIDL({
+        const processedB = idlProcessor.process({
             type: "polyline",
             paths: [coordsB],
             spatialReference: { wkid: 4326 },
