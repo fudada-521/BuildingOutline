@@ -7,20 +7,20 @@
 
 function testIDLProcessing(map) {
     require(["esri/layers/GraphicsLayer", "esri/Graphic"], function (GraphicsLayer, Graphic) {
-        // A线坐标：跨越IDL的原始坐标（纬度20-25）
+        // A线坐标：跨越IDL的原始坐标（纬度35-40）
         const coordsA = [
-            [-165, 20], // 西经
-            [-170, 22],
-            [165, 22], // 东经（跨越IDL）
-            [170, 20],
+            [-165, 35], // 西经
+            [-170, 37],
+            [165, 37], // 东经（跨越IDL）
+            [170, 35],
         ];
 
-        // B线坐标：纬度稍低（纬度15-20），错开显示
+        // B线坐标：纬度30-35
         const coordsB = [
-            [-165, 15], // 西经
-            [-170, 17],
-            [165, 17], // 东经（跨越IDL）
-            [170, 15],
+            [-165, 30], // 西经
+            [-170, 32],
+            [165, 32], // 东经（跨越IDL）
+            [170, 30],
         ];
 
         // 用 processGeometryAcrossIDL 处理 B 线
@@ -52,21 +52,6 @@ function testIDLProcessing(map) {
             }),
         );
 
-        // A：端点标记
-        coordsA.forEach(function (point) {
-            layerA.add(
-                new Graphic({
-                    geometry: { type: "point", x: point[0], y: point[1], spatialReference: { wkid: 4326 } },
-                    symbol: {
-                        type: "simple-marker",
-                        color: [255, 0, 0, 255],
-                        size: 10,
-                        outline: { color: [255, 255, 255, 255], width: 2 },
-                    },
-                }),
-            );
-        });
-
         // B：处理后 - 绿色实线
         layerB.add(
             new Graphic({
@@ -78,27 +63,5 @@ function testIDLProcessing(map) {
                 },
             }),
         );
-
-        // B：端点标记
-        processedB.paths[0].forEach(function (point) {
-            layerB.add(
-                new Graphic({
-                    geometry: { type: "point", x: point[0], y: point[1], spatialReference: { wkid: 4326 } },
-                    symbol: {
-                        type: "simple-marker",
-                        color: [0, 255, 0, 255],
-                        size: 10,
-                        outline: { color: [255, 255, 255, 255], width: 2 },
-                    },
-                }),
-            );
-        });
-
-        // 控制台输出
-        console.log("===== IDL 处理对比测试 =====");
-        console.log("A线（未处理，断裂）:", JSON.stringify(coordsA));
-        console.log("B线（原始坐标）:", JSON.stringify(coordsB));
-        console.log("B线（process处理后）:", JSON.stringify(processedB.paths));
-        console.log("========================");
     });
 }

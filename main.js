@@ -58,6 +58,8 @@ require(["esri/Map", "esri/views/MapView", "esri/widgets/Legend", "esri/widgets/
         console.log("地图加载完成!");
         // 运行IDL处理可视化对比测试
         testIDLProcessing(map);
+        // 运行Polygon IDL处理可视化对比测试
+        testPolygonIDL(map);
     });
 
     // 点击地图获取坐标
