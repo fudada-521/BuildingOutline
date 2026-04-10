@@ -52,26 +52,6 @@ function testIDLProcessing(map) {
             }),
         );
 
-        // A：端点标记
-        coordsA.forEach(function (point) {
-            layerA.add(
-                new Graphic({
-                    geometry: {
-                        type: "point",
-                        x: point[0],
-                        y: point[1],
-                        spatialReference: { wkid: 4326 },
-                    },
-                    symbol: {
-                        type: "simple-marker",
-                        color: [255, 0, 0, 255],
-                        size: 8,
-                        outline: { color: [255, 255, 255, 255], width: 2 },
-                    },
-                }),
-            );
-        });
-
         // B：处理后 - 绿色实线
         layerB.add(
             new Graphic({
@@ -83,32 +63,5 @@ function testIDLProcessing(map) {
                 },
             }),
         );
-
-        // B：端点标记
-        processedB.paths[0].forEach(function (point) {
-            layerB.add(
-                new Graphic({
-                    geometry: {
-                        type: "point",
-                        x: point[0],
-                        y: point[1],
-                        spatialReference: { wkid: 4326 },
-                    },
-                    symbol: {
-                        type: "simple-marker",
-                        color: [0, 255, 0, 255],
-                        size: 8,
-                        outline: { color: [255, 255, 255, 255], width: 2 },
-                    },
-                }),
-            );
-        });
-
-        // 输出到控制台
-        console.log("===== Polyline IDL 处理对比 =====");
-        console.log("A线（未处理，断裂）:", JSON.stringify(coordsA));
-        console.log("B线（原始坐标）:", JSON.stringify(coordsB));
-        console.log("B线（process处理后）:", JSON.stringify(processedB.paths));
-        console.log("================================");
     });
 }
