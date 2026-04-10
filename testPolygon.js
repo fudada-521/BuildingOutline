@@ -1,45 +1,38 @@
 /**
- * 验证 Polygon 跨越 IDL 的处理
- * A多边形：原始坐标（会断裂）
- * B多边形：process处理后（连续）
- *
- * @format
+ * 可视化对比测试：验证 Polygon 跨越 IDL 的处理
+ * A多边形：原始坐标（会断裂） B多边形：处理后（连续）
  */
 
 function testPolygonIDL(map) {
     require(["esri/layers/GraphicsLayer", "esri/Graphic"], function (GraphicsLayer, Graphic) {
+
         // A多边形：从东经往西经跨越IDL
-        // 路径：170 -> -170 -> -165
         const polygonA = {
             type: "polygon",
-            rings: [
-                [
-                    [170, 15], // 右下
-                    [170, 25], // 右上
-                    [-170, 25], // 左上（跨越IDL）
-                    [-170, 15], // 左下
-                    [170, 15], // 闭合
-                ],
-            ],
+            rings: [[
+                [170, 15],     // 右下
+                [170, 25],     // 右上
+                [-170, 25],    // 左上（跨越IDL）
+                [-170, 15],    // 左下
+                [170, 15],     // 闭合
+            ]],
             spatialReference: { wkid: 4326 },
         };
 
         // B多边形：同样从东经往西经跨越IDL
         const polygonBOriginal = {
             type: "polygon",
-            rings: [
-                [
-                    [170, 0], // 右下
-                    [170, 10], // 右上
-                    [-170, 10], // 左上（跨越IDL）
-                    [-170, 0], // 左下
-                    [170, 0], // 闭合
-                ],
-            ],
+            rings: [[
+                [170, 0],      // 右下
+                [170, 10],     // 右上
+                [-170, 10],    // 左上（跨越IDL）
+                [-170, 0],     // 左下
+                [170, 0],      // 闭合
+            ]],
             spatialReference: { wkid: 4326 },
         };
 
-        // 用 processGeometryAcrossIDL 处理 B 多边形
+        // 处理 B 多边形
         const polygonBProcessed = processGeometryAcrossIDL(polygonBOriginal);
 
         // 创建图层
@@ -54,14 +47,14 @@ function testPolygonIDL(map) {
                 geometry: polygonA,
                 symbol: {
                     type: "simple-fill",
-                    color: [255, 0, 0, 100], // 红色半透明
+                    color: [255, 0, 0, 100],
                     outline: {
                         color: [255, 0, 0, 255],
                         width: 2,
                         style: "dash",
                     },
                 },
-            }),
+            })
         );
 
         // B多边形：绿色半透明填充（处理后）
@@ -70,16 +63,16 @@ function testPolygonIDL(map) {
                 geometry: polygonBProcessed,
                 symbol: {
                     type: "simple-fill",
-                    color: [0, 255, 0, 100], // 绿色半透明
+                    color: [0, 255, 0, 100],
                     outline: {
                         color: [0, 255, 0, 255],
                         width: 2,
                     },
                 },
-            }),
+            })
         );
 
-        // 控制台输出
+        // 输出到控制台
         console.log("===== Polygon IDL 处理对比 =====");
         console.log("A多边形（未处理，断裂）:", JSON.stringify(polygonA.rings));
         console.log("B多边形（原始坐标）:", JSON.stringify(polygonBOriginal.rings));

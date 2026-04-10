@@ -1,8 +1,5 @@
 /**
  * 添加国际日期变更线到地图
- *
- * @format
- * @param {Map} map - ArcGIS Map对象
  */
 
 function addInternationalDateLine(map) {
@@ -13,8 +10,8 @@ function addInternationalDateLine(map) {
                 type: "simple",
                 symbol: {
                     type: "simple-line",
-                    color: [221, 21, 221, 221],
-                    width: 1,
+                    color: [255, 0, 0, 255],
+                    width: 2,
                 },
             },
         });
