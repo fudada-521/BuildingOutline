@@ -1,16 +1,17 @@
 /**
  * 可视化对比测试：验证 processGeometryAcrossIDL 功能
  * A线：未处理（断裂） B线：处理过（连续）
+ *
+ * @format
  */
 
 function testIDLProcessing(map) {
     require(["esri/layers/GraphicsLayer", "esri/Graphic"], function (GraphicsLayer, Graphic) {
-
         // A线：从西经往东经走，跨越IDL
         const coordsA = [
             [-170, 35],
             [-175, 37],
-            [175, 37],   // 跨越IDL
+            [175, 37], // 跨越IDL
             [170, 35],
         ];
 
@@ -18,7 +19,7 @@ function testIDLProcessing(map) {
         const coordsB = [
             [170, 30],
             [175, 32],
-            [-170, 32],  // 跨越IDL
+            [-170, 32], // 跨越IDL
             [-165, 30],
         ];
 
@@ -48,7 +49,7 @@ function testIDLProcessing(map) {
                     color: [255, 0, 0, 255],
                     width: 1,
                 },
-            })
+            }),
         );
 
         // A：端点标记
@@ -67,7 +68,7 @@ function testIDLProcessing(map) {
                         size: 8,
                         outline: { color: [255, 255, 255, 255], width: 2 },
                     },
-                })
+                }),
             );
         });
 
@@ -80,7 +81,7 @@ function testIDLProcessing(map) {
                     color: [0, 255, 0, 255],
                     width: 1,
                 },
-            })
+            }),
         );
 
         // B：端点标记
@@ -99,7 +100,7 @@ function testIDLProcessing(map) {
                         size: 8,
                         outline: { color: [255, 255, 255, 255], width: 2 },
                     },
-                })
+                }),
             );
         });
 
