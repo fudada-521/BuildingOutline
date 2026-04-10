@@ -14,7 +14,7 @@ function addInternationalDateLine(map) {
                 symbol: {
                     type: "simple-line",
                     color: [255, 0, 0, 255],
-                    width: 2,
+                    width: 1,
                 },
             },
         });

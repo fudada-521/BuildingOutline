@@ -53,9 +53,11 @@ require(["esri/Map", "esri/views/MapView", "esri/widgets/Legend", "esri/widgets/
     });
     view.ui.add(scaleBar, "bottom-right");
 
-    // 地图加载完成后打印信息
+    // 地图加载完成后打印信息并运行IDL处理测试
     view.when(function () {
         console.log("地图加载完成!");
+        // 运行IDL处理可视化对比测试
+        testIDLProcessing(map);
     });
 
     // 点击地图获取坐标
