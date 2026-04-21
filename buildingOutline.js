@@ -14,6 +14,360 @@ function initBuildingOutline(view, highlightLayer) {
     // 获取工具栏容器（由 main.js 创建）
     const toolbar = document.getElementById("map-toolbar");
 
+    /* 搜索和面板相关逻辑已禁用
+    // 创建搜索容器
+    const searchContainer = document.createElement("div");
+    searchContainer.style.cssText = `
+        display: flex;
+        margin-right: 6px;
+    `;
+
+    // 搜索输入框
+    const searchInput = document.createElement("input");
+    searchInput.type = "text";
+    searchInput.placeholder = "搜索地址...";
+    searchInput.style.cssText = `
+        width: 160px;
+        height: 36px;
+        padding: 0 10px;
+        border: 1px solid #ddd;
+        border-radius: 6px 0 0 6px;
+        font-size: 13px;
+        outline: none;
+    `;
+    searchInput.onfocus = function() {
+        this.style.borderColor = "#2196F3";
+    };
+    searchInput.onblur = function() {
+        this.style.borderColor = "#ddd";
+    };
+
+    // 搜索按钮
+    const searchBtn = document.createElement("button");
+    searchBtn.innerHTML = "搜索";
+    searchBtn.style.cssText = `
+        height: 36px;
+        padding: 0 12px;
+        background: #2196F3;
+        color: #fff;
+        border: none;
+        border-radius: 0 6px 6px 0;
+        cursor: pointer;
+        font-size: 13px;
+    `;
+    searchBtn.onmouseover = function() {
+        this.style.background = "#1976D2";
+    };
+    searchBtn.onmouseout = function() {
+        this.style.background = "#2196F3";
+    };
+
+    searchContainer.appendChild(searchInput);
+    searchContainer.appendChild(searchBtn);
+    toolbar.insertBefore(searchContainer, toolbar.firstChild);
+
+    // 搜索结果面板
+    const searchResultsPanel = document.createElement("div");
+    searchResultsPanel.id = "search-results-panel";
+    searchResultsPanel.style.cssText = `
+        display: none;
+        position: absolute;
+        top: 56px;
+        left: 10px;
+        width: 300px;
+        max-height: 400px;
+        overflow-y: auto;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        z-index: 101;
+    `;
+    document.getElementById("map").appendChild(searchResultsPanel);
+
+    // 存储搜索结果
+    let searchResults = [];
+
+    // 搜索地址函数（使用 Nominatim API）
+    function searchAddress(query) {
+        if (!query || query.trim() === "") {
+            return;
+        }
+
+        const nominatimUrl = "https://nominatim.openstreetmap.org/search";
+        const params = new URLSearchParams({
+            q: query,
+            format: "json",
+            limit: 5,
+            addressdetails: "1",
+        });
+
+        fetch(`${nominatimUrl}?${params}`, {
+            headers: {
+                "Accept": "application/json",
+            },
+        })
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(data) {
+                searchResults = data || [];
+                renderSearchResults();
+            })
+            .catch(function(error) {
+                console.error("搜索失败:", error);
+                alert("搜索失败，请稍后重试");
+            });
+    }
+
+    // 渲染搜索结果列表
+    function renderSearchResults() {
+        searchResultsPanel.innerHTML = "";
+        searchResultsPanel.style.display = "block";
+
+        if (searchResults.length === 0) {
+            searchResultsPanel.innerHTML = '<div style="padding: 16px; color: #999; text-align: center;">未找到结果</div>';
+            return;
+        }
+
+        searchResults.forEach(function(result, index) {
+            const item = document.createElement("div");
+            item.className = "search-result-item";
+            item.style.cssText = `
+                padding: 12px;
+                border-bottom: 1px solid #eee;
+                cursor: pointer;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            `;
+
+            const info = document.createElement("div");
+            info.style.cssText = `
+                flex: 1;
+                overflow: hidden;
+            `;
+
+            const name = document.createElement("div");
+            name.style.cssText = `
+                font-size: 13px;
+                color: #333;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            `;
+            name.textContent = result.display_name;
+
+            const coords = document.createElement("div");
+            coords.style.cssText = `
+                font-size: 11px;
+                color: #999;
+                margin-top: 4px;
+            `;
+            coords.textContent = `${parseFloat(result.lat).toFixed(5)}, ${parseFloat(result.lon).toFixed(5)}`;
+
+            info.appendChild(name);
+            info.appendChild(coords);
+
+            // 添加按钮（多选模式下显示）
+            const addBtn = document.createElement("button");
+            addBtn.innerHTML = "+";
+            addBtn.title = "添加到检测列表";
+            addBtn.style.cssText = `
+                width: 28px;
+                height: 28px;
+                background: #2196F3;
+                color: #fff;
+                border: none;
+                border-radius: 50%;
+                cursor: pointer;
+                font-size: 18px;
+                line-height: 1;
+                flex-shrink: 0;
+                display: none;
+            `;
+
+            item.appendChild(info);
+            item.appendChild(addBtn);
+
+            // 点击地图跳转
+            item.onclick = function(e) {
+                if (e.target === addBtn) return;
+                const lat = parseFloat(result.lat);
+                const lon = parseFloat(result.lon);
+                view.goTo({
+                    center: [lon, lat],
+                    zoom: 18,
+                });
+
+                if (isMultiSelect) {
+                    // 多选模式：显示+按钮
+                    addBtn.style.display = "block";
+                } else {
+                    // 单选模式：直接查询建筑
+                    addBtn.style.display = "none";
+                    queryBuildingsAtLocation(lat, lon);
+                }
+            };
+
+            // 点击+号添加到检测列表
+            addBtn.onclick = function(e) {
+                e.stopPropagation();
+                const lat = parseFloat(result.lat);
+                const lon = parseFloat(result.lon);
+                queryBuildingsAtLocation(lat, lon);
+            };
+
+            item.onmouseover = function() {
+                this.style.background = "#f5f5f5";
+            };
+            item.onmouseout = function() {
+                this.style.background = "#fff";
+            };
+
+            searchResultsPanel.appendChild(item);
+        });
+    }
+
+    // 点击外部关闭搜索结果面板
+    document.addEventListener("click", function(e) {
+        if (!searchContainer.contains(e.target) && !searchResultsPanel.contains(e.target)) {
+            searchResultsPanel.style.display = "none";
+        }
+    });
+
+    // 在指定坐标查询建筑
+    function queryBuildingsAtLocation(lat, lon) {
+        // 多选模式下不清除之前的建筑
+        if (!isMultiSelect) {
+            highlightLayer.removeAll();
+            selectedBuildings.length = 0;
+        }
+
+        // 使用Overpass API查询OSM建筑数据
+        const overpassUrl = "https://overpass-api.de/api/interpreter";
+        const query = `
+            [out:json][timeout:10];
+            (
+              way["building"](around:15,${lat},${lon});
+            );
+            out body geom;
+        `;
+
+        fetch(overpassUrl, {
+            method: "POST",
+            body: "data=" + encodeURIComponent(query),
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+        })
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(data) {
+                if (data.elements && data.elements.length > 0) {
+                    console.log("找到建筑数量:", data.elements.length);
+
+                    data.elements.forEach(function(element) {
+                        if (element.geometry && element.geometry.length > 0) {
+                            const coords = element.geometry.map(function(pt) {
+                                return [pt.lon, pt.lat];
+                            });
+                            if (coords.length > 0) {
+                                coords.push(coords[0]);
+                            }
+
+                            const polygon = {
+                                type: "polygon",
+                                rings: [coords],
+                                spatialReference: { wkid: 4326 },
+                            };
+
+                            addBuildingToSelection(polygon, element);
+                            updateBadge();
+                        }
+                    });
+                } else {
+                    console.log("该位置没有找到建筑");
+                }
+            })
+            .catch(function(error) {
+                console.error("查询建筑失败:", error);
+            });
+    }
+
+    // 搜索按钮点击事件
+    searchBtn.onclick = function() {
+        searchAddress(searchInput.value);
+    };
+
+    // 回车搜索
+    searchInput.onkeypress = function(event) {
+        if (event.key === "Enter") {
+            searchAddress(searchInput.value);
+        }
+    };
+    */
+
+    // 在指定坐标查询建筑
+    function queryBuildingsAtLocation(lat, lon) {
+        // 多选模式下不清除之前的建筑
+        if (!isMultiSelect) {
+            highlightLayer.removeAll();
+            selectedBuildings.length = 0;
+        }
+
+        // 使用Overpass API查询OSM建筑数据
+        const overpassUrl = "https://overpass-api.de/api/interpreter";
+        const query = `
+            [out:json][timeout:10];
+            (
+              way["building"](around:15,${lat},${lon});
+            );
+            out body geom;
+        `;
+
+        fetch(overpassUrl, {
+            method: "POST",
+            body: "data=" + encodeURIComponent(query),
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+        })
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(data) {
+                if (data.elements && data.elements.length > 0) {
+                    console.log("找到建筑数量:", data.elements.length);
+
+                    data.elements.forEach(function(element) {
+                        if (element.geometry && element.geometry.length > 0) {
+                            const coords = element.geometry.map(function(pt) {
+                                return [pt.lon, pt.lat];
+                            });
+                            if (coords.length > 0) {
+                                coords.push(coords[0]);
+                            }
+
+                            const polygon = {
+                                type: "polygon",
+                                rings: [coords],
+                                spatialReference: { wkid: 4326 },
+                            };
+
+                            addBuildingToSelection(polygon, element);
+                            updateBadge();
+                        }
+                    });
+                } else {
+                    console.log("该位置没有找到建筑");
+                }
+            })
+            .catch(function(error) {
+                console.error("查询建筑失败:", error);
+            });
+    }
+
     // 创建分段控制器容器
     const segmentContainer = document.createElement("div");
     segmentContainer.id = "mode-segment";
@@ -74,6 +428,10 @@ function initBuildingOutline(view, highlightLayer) {
             multiSelectBadge && (multiSelectBadge.style.display = "none");
             actionBtns.style.display = "none";
             clearAllSelections();
+            // 隐藏搜索结果中的+按钮
+            document.querySelectorAll(".search-result-item button").forEach(function(btn) {
+                btn.style.display = "none";
+            });
         }
     });
 
@@ -87,6 +445,10 @@ function initBuildingOutline(view, highlightLayer) {
             singleSelectBtn.style.color = "#333";
             multiSelectBadge && (multiSelectBadge.style.display = "inline-block");
             actionBtns.style.display = "flex";
+            // 显示搜索结果中的+按钮
+            document.querySelectorAll(".search-result-item button").forEach(function(btn) {
+                btn.style.display = "block";
+            });
         }
     });
 
@@ -187,17 +549,25 @@ function initBuildingOutline(view, highlightLayer) {
         updateBadge();
     }
 
-    // 检测建筑物相交
+    // 检测建筑物相交并计算最短距离
     function checkIntersections() {
         if (selectedBuildings.length < 2) {
             return;
         }
 
-        require(["esri/geometry/geometryEngine"], function (geometryEngine) {
+        require([
+            "esri/geometry/geometryEngine",
+            "esri/Graphic",
+            "esri/symbols/TextSymbol",
+            "esri/geometry/Point",
+            "esri/Color",
+            "esri/geometry/support/webMercatorUtils",
+        ], function (geometryEngine, Graphic, TextSymbol, Point, Color, webMercatorUtils) {
             let intersectionCount = 0;
             const intersectingPairs = [];
+            const distanceInfos = []; // 存储距离信息
 
-            // 两两检查是否相交
+            // 两两检查是否相交并计算距离
             for (let i = 0; i < selectedBuildings.length; i++) {
                 for (let j = i + 1; j < selectedBuildings.length; j++) {
                     const geom1 = selectedBuildings[i].geometry;
@@ -206,6 +576,30 @@ function initBuildingOutline(view, highlightLayer) {
                     if (geometryEngine.intersects(geom1, geom2)) {
                         intersectionCount++;
                         intersectingPairs.push([i, j]);
+                    }
+
+                    // 手动计算最近点距离（使用地理坐标计算）
+                    const result1 = geometryEngine.nearestCoordinate(geom1, geom2.centroid);
+                    const result2 = geometryEngine.nearestCoordinate(geom2, geom1.centroid);
+
+                    if (result1 && result2) {
+                        // 将地理坐标转换为 Web Mercator 再计算距离
+                        const pt1Mercator = webMercatorUtils.lngLatToXY(result1.coordinate.x, result1.coordinate.y);
+                        const pt2Mercator = webMercatorUtils.lngLatToXY(result2.coordinate.x, result2.coordinate.y);
+                        const distance = Math.sqrt(
+                            Math.pow(pt2Mercator[0] - pt1Mercator[0], 2) +
+                            Math.pow(pt2Mercator[1] - pt1Mercator[1], 2)
+                        );
+
+                        if (distance > 0) {
+                            distanceInfos.push({
+                                from: i,
+                                to: j,
+                                distance: distance,
+                                pt1: result1.coordinate,
+                                pt2: result2.coordinate
+                            });
+                        }
                     }
                 }
             }
@@ -217,28 +611,88 @@ function initBuildingOutline(view, highlightLayer) {
                     return pair[0] === idx || pair[1] === idx;
                 });
 
-                require(["esri/Graphic"], function (Graphic) {
-                    const graphic = new Graphic({
-                        geometry: item.geometry,
+                const graphic = new Graphic({
+                    geometry: item.geometry,
+                    symbol: {
+                        type: "simple-line",
+                        color: isIntersecting ? [255, 0, 0, 255] : [0, 255, 255, 255],
+                        width: isIntersecting ? 3 : 1.5,
+                    },
+                });
+                highlightLayer.add(graphic);
+            });
+
+            // 绘制距离线和标签
+            distanceInfos.forEach(function(info) {
+                if (info.pt1 && info.pt2) {
+                    // 绘制连接线
+                    const lineGraphic = new Graphic({
+                        geometry: {
+                            type: "polyline",
+                            paths: [[
+                                [info.pt1.x, info.pt1.y],
+                                [info.pt2.x, info.pt2.y]
+                            ]],
+                            spatialReference: { wkid: 4326 }
+                        },
                         symbol: {
                             type: "simple-line",
-                            color: isIntersecting ? [255, 0, 0, 255] : [0, 255, 255, 255],
-                            width: isIntersecting ? 3 : 1.5,
-                        },
+                            color: [255, 152, 0, 200],
+                            width: 1.5,
+                            style: "dash",
+                        }
                     });
-                    highlightLayer.add(graphic);
-                });
+                    highlightLayer.add(lineGraphic);
+
+                    // 计算中点
+                    const midX = (info.pt1.x + info.pt2.x) / 2;
+                    const midY = (info.pt1.y + info.pt2.y) / 2;
+
+                    // 格式化距离显示
+                    let distanceText;
+                    if (info.distance < 1000) {
+                        distanceText = info.distance.toFixed(1) + "m";
+                    } else {
+                        distanceText = (info.distance / 1000).toFixed(2) + "km";
+                    }
+
+                    // 添加距离标签
+                    const labelGraphic = new Graphic({
+                        geometry: new Point({
+                            x: midX,
+                            y: midY,
+                            spatialReference: { wkid: 4326 }
+                        }),
+                        symbol: new TextSymbol({
+                            text: distanceText,
+                            color: new Color([255, 152, 0, 255]),
+                            fontSize: 11,
+                            haloColor: new Color([255, 255, 255, 200]),
+                            haloSize: 2,
+                            horizontalAlignment: "center",
+                            verticalAlignment: "bottom",
+                        })
+                    });
+                    highlightLayer.add(labelGraphic);
+                }
             });
         });
     }
 
     // 添加建筑到选择列表
     function addBuildingToSelection(geometry, element) {
-        selectedBuildings.push({ geometry: geometry, element: element });
+        // 将普通对象转换为 ArcGIS 几何对象（用于后续投影计算）
+        require(["esri/geometry/Polygon", "esri/Graphic"], function (Polygon, Graphic) {
+            const arcgisGeometry = new Polygon({
+                type: "polygon",
+                rings: geometry.rings,
+                spatialReference: geometry.spatialReference,
+            });
 
-        require(["esri/Graphic"], function (Graphic) {
+            selectedBuildings.push({ geometry: arcgisGeometry, element: element });
+
             const graphic = new Graphic({
-                geometry: geometry,
+                geometry: arcgisGeometry,
                 symbol: {
                     type: "simple-line",
                     color: [0, 255, 255, 255],
@@ -249,68 +703,11 @@ function initBuildingOutline(view, highlightLayer) {
         });
     }
 
-    // 点击地图查询建筑轮廓（使用OSM Overpass API）
+    // 点击地图查询建筑轮廓
     view.on("click", function (event) {
         const lat = event.mapPoint.latitude;
         const lon = event.mapPoint.longitude;
         console.log("点击位置:", lon.toFixed(6), lat.toFixed(6));
-
-        // 多选模式下不清除之前的建筑
-        if (!isMultiSelect) {
-            highlightLayer.removeAll();
-            selectedBuildings.length = 0;
-        }
-
-        // 使用Overpass API查询OSM建筑数据
-        const overpassUrl = "https://overpass-api.de/api/interpreter";
-        const query = `
-            [out:json][timeout:10];
-            (
-              way["building"](around:15,${lat},${lon});
-            );
-            out body geom;
-        `;
-
-        fetch(overpassUrl, {
-            method: "POST",
-            body: "data=" + encodeURIComponent(query),
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded",
-            },
-        })
-            .then(function (response) {
-                return response.json();
-            })
-            .then(function (data) {
-                if (data.elements && data.elements.length > 0) {
-                    console.log("找到建筑数量:", data.elements.length);
-                    
-                    data.elements.forEach(function (element) {
-                        if (element.geometry && element.geometry.length > 0) {
-                            const coords = element.geometry.map(function (pt) {
-                                return [pt.lon, pt.lat];
-                            });
-                            if (coords.length > 0) {
-                                coords.push(coords[0]);
-                            }
-
-                            const polygon = {
-                                type: "polygon",
-                                rings: [coords],
-                                spatialReference: { wkid: 4326 },
-                            };
-
-                            // 添加建筑到选择列表
-                            addBuildingToSelection(polygon, element);
-                            updateBadge();
-                        }
-                    });
-                } else {
-                    console.log("该位置没有找到建筑");
-                }
-            })
-            .catch(function (error) {
-                console.error("查询建筑失败:", error);
-            });
+        queryBuildingsAtLocation(lat, lon);
     });
 }
