@@ -41,26 +41,6 @@ require([
     });
 
     // =============================================
-    // 天地图底图图层 (需要在天地图官网申请key)
-    // =============================================
-    // 请替换为您的天地图API Key
-    const TIANDITU_KEY = "6ad185fadd6012a1b89063b1a887e77c";
-
-    const tiandituStreetsLayer = new WebTileLayer({
-        urlTemplate:
-            "https://t{subDomain}.tianditu.gov.cn/DataServer?T=vec_w&x={col}&y={row}&z={level}&tk=" + TIANDITU_KEY,
-        subDomains: ["0", "1", "2", "3", "4", "5", "6", "7"],
-        copyright: "© 天地图",
-    });
-
-    const tiandituSatelliteLayer = new WebTileLayer({
-        urlTemplate:
-            "https://t{subDomain}.tianditu.gov.cn/DataServer?T=img_w&x={col}&y={row}&z={level}&tk=" + TIANDITU_KEY,
-        subDomains: ["0", "1", "2", "3", "4", "5", "6", "7"],
-        copyright: "© 天地图",
-    });
-
-    // =============================================
     // 创建底图
     // =============================================
     const basemaps = [
@@ -68,8 +48,6 @@ require([
         new Basemap({ baseLayers: [googleSatelliteLayer], title: "Google 卫星影像", id: "google-satellite" }),
         new Basemap({ baseLayers: [gaodeStreetsLayer], title: "高德街道图", id: "gaode-streets" }),
         new Basemap({ baseLayers: [gaodeSatelliteLayer], title: "高德卫星影像", id: "gaode-satellite" }),
-        new Basemap({ baseLayers: [tiandituStreetsLayer], title: "天地图街道图", id: "tianditu-streets" }),
-        new Basemap({ baseLayers: [tiandituSatelliteLayer], title: "天地图卫星影像", id: "tianditu-satellite" }),
     ];
 
     // 建筑高亮图层 - 用于显示被点击建筑的描边

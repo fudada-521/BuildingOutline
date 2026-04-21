@@ -28,7 +28,8 @@
       "Bash(node --check /Users/fukun/Documents/AI-Workspace/arcgis-js-api-demo/buildingOutline.js)",
       "WebFetch(domain:www.iconfont.cn)",
       "Bash(node --check /Users/fukun/Documents/AI-Workspace/arcgis-js-api-demo/main.js)",
-      "Bash(gh auth status:*)"
+      "Bash(gh auth status:*)",
+      "WebFetch(domain:www.tianditu.gov.cn)"
     ]
   }
 }
