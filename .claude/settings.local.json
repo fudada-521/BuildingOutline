@@ -15,7 +15,13 @@
       "Bash(git init)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(node --check /Users/fukun/Documents/AI-Workspace/arcgis-js-api-demo/idlGeometry.js)"
+      "Bash(node --check /Users/fukun/Documents/AI-Workspace/arcgis-js-api-demo/idlGeometry.js)",
+      "Bash(git checkout:*)",
+      "WebFetch(domain:overpass-api.de)",
+      "WebFetch(domain:www.esri.com)",
+      "Bash(git tag -a v1.0.0 -m \"建筑轮廓描边功能完成，Google街道图底图，第三方服务报告完整\")",
+      "WebFetch(domain:developers.google.com)",
+      "Bash(ls *.js *.html *.css *.md)"
     ]
   }
 }
