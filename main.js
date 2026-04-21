@@ -102,7 +102,7 @@ require([
         container: "map",
         map: map,
         center: [114.161693, 22.279088],
-        zoom: 20,
+        zoom: 17,
     });
 
     // 添加比例尺
