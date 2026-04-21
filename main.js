@@ -55,16 +55,47 @@ require([
         console.log("底图切换为:", isSatellite ? "卫星影像" : "街道图");
     }
 
+    // 创建工具栏容器
+    const toolbar = document.createElement("div");
+    toolbar.id = "map-toolbar";
+    toolbar.style.cssText = `
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 100;
+        display: flex;
+        gap: 6px;
+        align-items: center;
+    `;
+    document.getElementById("map").appendChild(toolbar);
+
     // 添加底图切换按钮
     const basemapToggle = document.createElement("button");
     basemapToggle.id = "basemap-toggle";
-    basemapToggle.innerHTML = "🌏 卫星";
-    basemapToggle.style.cssText = "position:absolute;top:10px;right:10px;z-index:100;padding:8px 12px;background:#fff;border:1px solid #ccc;border-radius:4px;cursor:pointer;font-size:14px;";
+    basemapToggle.innerHTML = "🌏";
+    basemapToggle.title = "切换底图";
+    basemapToggle.style.cssText = `
+        width: 36px;
+        height: 36px;
+        background: #fff;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 16px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        transition: all 0.2s;
+    `;
     basemapToggle.onclick = function () {
         toggleBasemap();
-        basemapToggle.innerHTML = isSatellite ? "🗺️ 街道" : "🌏 卫星";
+        basemapToggle.innerHTML = isSatellite ? "🗺️" : "🌏";
     };
-    document.getElementById("map").appendChild(basemapToggle);
+    basemapToggle.onmouseover = function() {
+        this.style.background = "#f5f5f5";
+    };
+    basemapToggle.onmouseout = function() {
+        this.style.background = "#fff";
+    };
+    toolbar.appendChild(basemapToggle);
 
     // 创建地图视图 - 中心在香港
     const view = new MapView({
