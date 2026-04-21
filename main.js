@@ -11,25 +11,39 @@ require([
     "esri/layers/GraphicsLayer",
     "esri/Graphic",
 ], function (Map, MapView, Legend, ScaleBar, Basemap, WebTileLayer, FeatureLayer, GraphicsLayer, Graphic) {
-    // Google 街道图瓦片图层
+    // Google 标注图层（道路、地名）
+    // const googleLabelsLayer = new WebTileLayer({
+    //     urlTemplate: "https://mt{subDomain}.google.com/vt/lyrs=h&x={col}&y={row}&z={level}",
+    //     subDomains: ["0", "1", "2", "3"],
+    //     copyright: "© Google",
+    // });
+
+    // Google 卫星影像图层
     const googleSatelliteLayer = new WebTileLayer({
+        urlTemplate: "https://mt{subDomain}.google.com/vt/lyrs=s&x={col}&y={row}&z={level}",
+        subDomains: ["0", "1", "2", "3"],
+        copyright: "© Google",
+    });
+
+    // Google 街道图瓦片图层
+    const googleStreetsLayer = new WebTileLayer({
         urlTemplate: "https://mt{subDomain}.google.com/vt/lyrs=m&x={col}&y={row}&z={level}",
         subDomains: ["0", "1", "2", "3"],
         copyright: "© Google",
     });
 
-    // Google 标注图层（道路、地名）
-    const googleLabelsLayer = new WebTileLayer({
-        urlTemplate: "https://mt{subDomain}.google.com/vt/lyrs=h&x={col}&y={row}&z={level}",
-        subDomains: ["0", "1", "2", "3"],
-        copyright: "© Google",
-    });
-
-    // 用 Google 卫星影像 + 道路标注创建自定义底图
-    const googleBasemap = new Basemap({
-        baseLayers: [googleSatelliteLayer, googleLabelsLayer],
+    // 卫星影像底图
+    const satelliteBasemap = new Basemap({
+        baseLayers: [googleSatelliteLayer],
         title: "Google Satellite",
         id: "google-satellite",
+    });
+
+    // 街道图底图
+    const streetsBasemap = new Basemap({
+        baseLayers: [googleStreetsLayer],
+        title: "Google Streets",
+        id: "google-streets",
     });
 
     // 国界图层 - ArcGIS World Nations
@@ -101,11 +115,30 @@ require([
     // 建筑高亮图层 - 用于显示被点击建筑的描边
     const highlightLayer = new GraphicsLayer();
 
-    // 创建地图对象 - 使用 Google 卫星影像底图
+    // 创建地图对象 - 使用 Google 街道图底图
     const map = new Map({
-        basemap: googleBasemap,
+        basemap: streetsBasemap,
         layers: [countriesLayer, citiesLayer, highlightLayer],
     });
+
+    // 底图切换功能
+    let isSatellite = false;
+    function toggleBasemap() {
+        isSatellite = !isSatellite;
+        map.basemap = isSatellite ? satelliteBasemap : streetsBasemap;
+        console.log("底图切换为:", isSatellite ? "卫星影像" : "街道图");
+    }
+
+    // 添加底图切换按钮
+    const basemapToggle = document.createElement("button");
+    basemapToggle.id = "basemap-toggle";
+    basemapToggle.innerHTML = "🌏 卫星";
+    basemapToggle.style.cssText = "position:absolute;top:10px;right:10px;z-index:100;padding:8px 12px;background:#fff;border:1px solid #ccc;border-radius:4px;cursor:pointer;font-size:14px;";
+    basemapToggle.onclick = function () {
+        toggleBasemap();
+        basemapToggle.innerHTML = isSatellite ? "🗺️ 街道" : "🌏 卫星";
+    };
+    document.getElementById("map").appendChild(basemapToggle);
 
     // 添加国际日期变更线
     // initIDL(map);
