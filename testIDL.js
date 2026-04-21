@@ -3,7 +3,7 @@
  * A线：未处理（断裂） B线：处理过（连续）
  */
 
-function testIDLProcessing(map) {
+function initTestIDL(map) {
     require(["esri/layers/GraphicsLayer", "esri/Graphic"], function (GraphicsLayer, Graphic) {
         // A线：从西经往东经走，跨越IDL
         const coordsA = [

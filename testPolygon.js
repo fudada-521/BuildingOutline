@@ -3,7 +3,7 @@
  * A多边形：原始坐标（会断裂） B多边形：处理后（连续）
  */
 
-function testPolygonIDL(map) {
+function initTestPolygon(map) {
     require(["esri/layers/GraphicsLayer", "esri/Graphic"], function (GraphicsLayer, Graphic) {
 
         // A多边形：从东经往西经跨越IDL
