@@ -8,24 +8,26 @@ require([
     "esri/Basemap",
     "esri/layers/WebTileLayer",
     "esri/layers/FeatureLayer",
-], function (Map, MapView, Legend, ScaleBar, Basemap, WebTileLayer, FeatureLayer) {
-    // Google 卫星影像瓦片图层
+    "esri/layers/GraphicsLayer",
+    "esri/Graphic",
+], function (Map, MapView, Legend, ScaleBar, Basemap, WebTileLayer, FeatureLayer, GraphicsLayer, Graphic) {
+    // Google 街道图瓦片图层
     const googleSatelliteLayer = new WebTileLayer({
-        urlTemplate: "https://mt{subDomain}.google.com/vt/lyrs=s&x={col}&y={row}&z={level}",
+        urlTemplate: "https://mt{subDomain}.google.com/vt/lyrs=m&x={col}&y={row}&z={level}",
         subDomains: ["0", "1", "2", "3"],
         copyright: "© Google",
     });
 
     // Google 标注图层（道路、地名）
-    // const googleLabelsLayer = new WebTileLayer({
-    //     urlTemplate: "https://mt{subDomain}.google.com/vt/lyrs=h&x={col}&y={row}&z={level}",
-    //     subDomains: ["0", "1", "2", "3"],
-    //     copyright: "© Google",
-    // });
+    const googleLabelsLayer = new WebTileLayer({
+        urlTemplate: "https://mt{subDomain}.google.com/vt/lyrs=h&x={col}&y={row}&z={level}",
+        subDomains: ["0", "1", "2", "3"],
+        copyright: "© Google",
+    });
 
-    // 用 Google 卫星影像 + 标注创建自定义底图
+    // 用 Google 卫星影像 + 道路标注创建自定义底图
     const googleBasemap = new Basemap({
-        baseLayers: [googleSatelliteLayer],
+        baseLayers: [googleSatelliteLayer, googleLabelsLayer],
         title: "Google Satellite",
         id: "google-satellite",
     });
@@ -93,20 +95,26 @@ require([
         ],
     });
 
+    // 建筑轮廓图层 - OSM Overpass API（不显示，只用于查询）
+    // ArcGIS World Buildings服务无效，改用OpenStreetMap建筑数据
+
+    // 建筑高亮图层 - 用于显示被点击建筑的描边
+    const highlightLayer = new GraphicsLayer();
+
     // 创建地图对象 - 使用 Google 卫星影像底图
     const map = new Map({
         basemap: googleBasemap,
-        layers: [countriesLayer, citiesLayer],
+        layers: [countriesLayer, citiesLayer, highlightLayer],
     });
 
     // 添加国际日期变更线
     // initIDL(map);
 
-    // 创建地图视图 - 中心在吉隆坡/新加坡附近
+    // 创建地图视图 - 中心在香港
     const view = new MapView({
         container: "map",
         map: map,
-        center: [101.822559, 2.965304],
+        center: [114.161693, 22.279088],
         zoom: 20,
     });
 
@@ -123,19 +131,10 @@ require([
     });
     view.ui.add(scaleBar, "bottom-right");
 
-    // 地图加载完成后打印信息并运行IDL处理测试
+    // 地图加载完成后初始化功能
     view.when(function () {
         console.log("地图加载完成!");
-        // 运行IDL处理可视化对比测试
-        // initTestIDL(map);
-        // 运行Polygon IDL处理可视化对比测试
-        // initTestPolygon(map);
-    });
-
-    // 点击地图获取坐标
-    view.on("click", function (event) {
-        const lat = event.mapPoint.latitude.toFixed(6);
-        const lon = event.mapPoint.longitude.toFixed(6);
-        console.log("点击位置:", lon, lat);
+        // 初始化建筑轮廓描边功能
+        initBuildingOutline(view, highlightLayer);
     });
 });
