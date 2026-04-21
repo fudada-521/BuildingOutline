@@ -21,7 +21,9 @@
       "WebFetch(domain:www.esri.com)",
       "Bash(git tag -a v1.0.0 -m \"建筑轮廓描边功能完成，Google街道图底图，第三方服务报告完整\")",
       "WebFetch(domain:developers.google.com)",
-      "Bash(ls *.js *.html *.css *.md)"
+      "Bash(ls *.js *.html *.css *.md)",
+      "Bash(git tag:*)",
+      "Bash(git tag -a v1.1.0 -m \"项目精简：仅保留建筑轮廓标注功能，移除IDL相关代码\")"
     ]
   }
 }
