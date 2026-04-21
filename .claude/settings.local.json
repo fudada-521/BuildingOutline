@@ -26,7 +26,9 @@
       "Bash(git tag -a v1.1.0 -m \"项目精简：仅保留建筑轮廓标注功能，移除IDL相关代码\")",
       "Bash(zip:*)",
       "Bash(node --check /Users/fukun/Documents/AI-Workspace/arcgis-js-api-demo/buildingOutline.js)",
-      "WebFetch(domain:www.iconfont.cn)"
+      "WebFetch(domain:www.iconfont.cn)",
+      "Bash(node --check /Users/fukun/Documents/AI-Workspace/arcgis-js-api-demo/main.js)",
+      "Bash(gh auth status:*)"
     ]
   }
 }
